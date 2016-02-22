@@ -47,6 +47,7 @@ POSTQUEUE_OPT=(
 "Show all mails in queue"
 "Show mail content by id"
 "Delete all messages by header part"
+"Delete all queue"
 "Main menu"
 "Quit"
 )
@@ -144,7 +145,7 @@ function postqueue_delete {
 				echo "WARNING! We done our best to keep you server safe. Nevertheless this script is provided on AS IS basis. We are not responsible for any damage to you server or any data lost. You are running this stage on you own risk!"
 				read SELECTOR
 					case $SELECTOR in
-						[yY]*) find $QUEUEDIR -type f -exec fgrep -q '$POST_HEADER' {} \; -exec basename {} \; | postsuper -d -
+						[yY]*) find $QUEUEDIR -type f -exec fgrep -q "$POST_HEADER" {} \; -exec basename {} \; | postsuper -d -
 							;;
 						[nN]*) quit
 							;;
@@ -212,6 +213,9 @@ function postqueue_management {
 			postqueue_management
 		elif [ "$opt" = "Delete all messages by header part" ]; then
 			postfix_queue
+			postqueue_management
+		elif [ "$opt" = "Delete all queue" ]; then
+			postsuper -d ALL
 			postqueue_management
 		else
 			clear
