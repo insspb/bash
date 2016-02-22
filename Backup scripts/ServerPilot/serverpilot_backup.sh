@@ -76,8 +76,8 @@ for DATABASE in $DATABASES; do
 done
 
 #Everytime recheking permissions for backups and logs
-chmod 700 $DESTINATION -fR
-chmod 700 $LOGDIR -fR
+chmod 600 $DESTINATION -fR
+chmod 600 $LOGDIR -fR
 
 #Deleting old backups
 find $DESTINATION -mtime +$KEEPDAYS -exec rm {} -fR \;
