@@ -78,9 +78,19 @@ fixperms () {
     tput setaf 3
     echo "------------------------"
     tput setaf 4
+    echo "Fixing mail config files...."
+    tput sgr0
+
+    #Fix mail permissions
+    chown $verbose -R $account:$account $HOMEDIR/etc/*
+    find $HOMEDIR/etc -type d -exec chmod $verbose 750 {} \;
+    find $HOMEDIR/etc -type f -exec chmod $verbose 640 {} \;
+    find $HOMEDIR/etc -type f -name '_privs.json' -exec chmod $verbose 600 {} \;
+
+    tput bold
+    tput setaf 4
     echo "Fixing website files...."
     tput sgr0
-    
     #Fix individual files in public_html
     find $HOMEDIR/public_html -type d -exec chmod $verbose 755 {} \;
     find $HOMEDIR/public_html -type f | xargs -d$'\n' -r chmod $verbose 644
