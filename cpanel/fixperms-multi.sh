@@ -86,6 +86,7 @@ fixperms () {
     find $HOMEDIR/etc -type d -exec chmod $verbose 750 {} \;
     find $HOMEDIR/etc -type f -exec chmod $verbose 640 {} \;
     find $HOMEDIR/etc -type f -name '_privs.json' -exec chmod $verbose 600 {} \;
+    chown $verbose -R $account:$account $HOMEDIR/mail/*
 
     tput bold
     tput setaf 4
