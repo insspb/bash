@@ -15,10 +15,14 @@ SLOG="$SDIR/backup.log"
 PID_FILE="$SDIR/backup.pid"
 ADMIN_EMAIL="email@domain.com"
  
- 
-if [ -e $PID_FILE ]; then
-        echo "this task is already running or previous run was completed with errors on `hostname`" | mail -s "Some mess with backups on `hostname`..." $ADMIN_EMAIL
-        exit
+ if [ -e $PID_FILE ]; then
+	if [ -z `ps ax | awk '{ print $1;}' | grep $PID_FILE`]; then
+		echo " process $PID_FILE died"
+		rm $PID_FILE
+	else
+		echo " process $PID_FILE still working"
+	exit
+	fi
 fi
  
 touch $PID_FILE
