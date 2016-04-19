@@ -8,14 +8,14 @@
 # example of a GOOD backup.ini:
 # mydomain.com user@mydomain.com:/path/to/public_html
 #
- 
+
 SDIR="/usr/local/backup"
 SKEY="$SDIR/.ssh/id_rsa"
 SLOG="$SDIR/backup.log"
 PID_FILE="$SDIR/backup.pid"
 ADMIN_EMAIL="email@domain.com"
- 
- if [ -e $PID_FILE ]; then
+
+if [ -e $PID_FILE ]; then
 	if [ -z `ps ax | awk '{ print $1;}' | grep $PID_FILE`]; then
 		echo " process $PID_FILE died"
 		rm $PID_FILE
@@ -24,24 +24,24 @@ ADMIN_EMAIL="email@domain.com"
 	exit
 	fi
 fi
- 
+
 touch $PID_FILE
- 
+
 # redirecting all output to logfile
 exec >> $SLOG 2>&1
- 
+
 # parsing backup.ini file into $domain and $from variables
 cat backup.ini | while read domain from ; do
 	destination="$SDIR/domains/$domain"
 	# downloading a fresh copy in 'latest' directory
 	echo -e "`date` *** $domain backup started">>$SLOG
- 
+
 	# start counting rsync worktime
 	start=$(date +%s)
 	rsync --archive --one-file-system --delete -e "ssh -i $SKEY" "$from" "$destination/latest" || (echo -e "Error when rsyncing $domain. \n\n For more information see $SLOG:\n\n `tail $SLOG`" | mail -s "rsync error" $ADMIN_EMAIL & continue)
 	finish=$(date +%s)
 	echo -e "`date` *** RSYNC worked for $((finish - start)) seconds">>$SLOG
- 
+
     # cloning the fresh copy by hardlinking
 	cp --archive --link "$destination/latest" "$destination/`date +%F`"
 	# deleting all previous copies which are older than 7 days by creation date, but not 'latest'
@@ -51,5 +51,5 @@ cat backup.ini | while read domain from ; do
 	echo -e "`date` *** Total allocated `du -sh $destination | awk '{print $1}'`">>$SLOG
 	echo -e "------------------------------------------------------------------">>$SLOG
 done
- 
+
 rm $PID_FILE
