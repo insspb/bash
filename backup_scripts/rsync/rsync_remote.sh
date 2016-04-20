@@ -15,6 +15,16 @@ SLOG="$SDIR/backup.log"
 PID_FILE="$SDIR/backup.pid"
 ADMIN_EMAIL="email@domain.com"
 
+if [ ! -d $SDIR ]; then
+	echo "No backup directory, exit"
+	exit
+fi
+
+if [ ! -e $SKEY ]; then
+	echo "No SSH key file, exit"
+	exit
+fi
+
 if [ -e $PID_FILE ]; then
 	if [ -z `ps ax | awk '{ print $1;}' | grep $PID_FILE`]; then
 		echo " process $PID_FILE died"
