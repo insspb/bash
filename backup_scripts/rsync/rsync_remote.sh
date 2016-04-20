@@ -1,6 +1,8 @@
 #!/bin/sh
 # simple rsync backup script written by farmal.in 2011-01-21
+# rewritten by a.shpak 20.04.2016
 #
+# Contact me at https://github.com/insspb
 # latest backup is always in $SDIR/domains/$domain/latest folder
 # all backups which are older than 7 days would be deleted
 # backup.ini file can't contain comments, empty lines and spaces in domain names
