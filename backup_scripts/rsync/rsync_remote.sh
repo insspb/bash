@@ -14,6 +14,7 @@ SKEY="$SDIR/.ssh/id_rsa"
 SLOG="$SDIR/backup.log"
 PID_FILE="$SDIR/backup.pid"
 ADMIN_EMAIL="email@domain.com"
+INI=backup.ini
 
 if [ ! -d $SDIR ]; then
 	echo "No backup directory, exit"
@@ -22,6 +23,11 @@ fi
 
 if [ ! -e $SKEY ]; then
 	echo "No SSH key file, exit"
+	exit
+fi
+
+if [ ! -e $SINI ]; then
+	echo "No ini file, exit"
 	exit
 fi
 
@@ -41,7 +47,7 @@ touch $PID_FILE
 exec >> $SLOG 2>&1
 
 # parsing backup.ini file into $domain and $from variables
-cat backup.ini | while read domain from ; do
+cat $INI | while read domain from ; do
 	destination="$SDIR/domains/$domain"
 	# downloading a fresh copy in 'latest' directory
 	echo -e "`date` *** $domain backup started">>$SLOG
