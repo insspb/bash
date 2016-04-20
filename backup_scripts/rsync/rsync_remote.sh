@@ -3,20 +3,21 @@
 # rewritten by a.shpak 20.04.2016
 #
 # Contact me at https://github.com/insspb
-# latest backup is always in $SDIR/domains/$domain/latest folder
+# latest backup is always in $SDIR/$server/latest folder
 # all backups which are older than 7 days would be deleted
 # backup.ini file can't contain comments, empty lines and spaces in domain names
 #
 # example of a GOOD backup.ini:
-# mydomain.com user@mydomain.com:/path/to/public_html
+# server user@mydomain.com:/path/to/public_html
 #
 
-SDIR="/usr/local/backup"
+SDIR="/backups"
 SKEY="$SDIR/.ssh/id_rsa"
 SLOG="$SDIR/backup.log"
 PID_FILE="$SDIR/backup.pid"
-ADMIN_EMAIL="email@domain.com"
-INI=backup.ini
+ADMIN_EMAIL="ashpak@ashpak.ru"
+INI="$SDIR/backup.ini"
+KEEPDAYS="4"
 
 if [ ! -d $SDIR ]; then
 	echo "No backup directory, exit"
@@ -48,24 +49,21 @@ touch $PID_FILE
 # redirecting all output to logfile
 exec >> $SLOG 2>&1
 
-# parsing backup.ini file into $domain and $from variables
-cat $INI | while read domain from ; do
-	destination="$SDIR/domains/$domain"
+# parsing backup.ini file into $server and $from variables
+cat $INI | while read server from ; do
+	destination="$SDIR/$server"
 	# downloading a fresh copy in 'latest' directory
-	echo -e "`date` *** $domain backup started">>$SLOG
+	echo -e "`date` *** $server backup started">>$SLOG
+	# deleting all previous copies which are older than 7 days by creation date, but not 'latest'
+	find "$destination" -maxdepth 1 -ctime +$KEEPDAYS -type d -path "$destination" -exec rm -r -f {} \;
 
 	# start counting rsync worktime
 	start=$(date +%s)
-	rsync --archive --one-file-system --delete -e "ssh -i $SKEY" "$from" "$destination/latest" || (echo -e "Error when rsyncing $domain. \n\n For more information see $SLOG:\n\n `tail $SLOG`" | mail -s "rsync error" $ADMIN_EMAIL & continue)
+	rsync -v -r --remove-source-files --one-file-system -e "ssh -i $SKEY" "$from" "$destination" || (echo -e "Error when rsyncing $server. \n\n For more information see $SLOG:\n\n `tail $SLOG`" | mail -s "rsync error" $ADMIN_EMAIL & continue)
 	finish=$(date +%s)
 	echo -e "`date` *** RSYNC worked for $((finish - start)) seconds">>$SLOG
 
-    # cloning the fresh copy by hardlinking
-	cp --archive --link "$destination/latest" "$destination/`date +%F`"
-	# deleting all previous copies which are older than 7 days by creation date, but not 'latest'
-	find "$destination" -maxdepth 1 -ctime +7 -type d -path "$destination/????-??-??" -exec rm -r -f {} \;
-	echo "`date` *** The size of $domain/latest is now `du -sh $destination/latest | awk '{print $1}'` ">>$SLOG
-	echo -e "`date` *** $domain backup ended">>$SLOG
+	echo -e "`date` *** $server backup ended">>$SLOG
 	echo -e "`date` *** Total allocated `du -sh $destination | awk '{print $1}'`">>$SLOG
 	echo -e "------------------------------------------------------------------">>$SLOG
 done
