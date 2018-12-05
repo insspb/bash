@@ -1,25 +1,29 @@
 from redirects import Redirect
+import csv
 
-testcheck = Redirect('http://www.searchengines.guru/showthread.php?t=843885',
-                      'https://searchengines.guru/showthread.php?t=843885')
-testcheck2 = Redirect('http://www.searchengines.guru/showthread.php?t=843885',
-                       'http://searchengines.guru/showthread.php?t=843885')
-testcheck3 = Redirect('http://ht.wingly.de/short-rsdbk-$1' )
-testcheck.compare()
-testcheck2.compare()
-testcheck3.compare()
+# Custom methods to work with Redirect class. Get urls from CSV or from
+# two different text files.
 
-def plain_input(f1,f2):
+
+def plain_input(f1, f2, verbose=False):
     f1 = open(f1).read().splitlines()
     f2 = open(f2).read().splitlines()
     input_list = list(zip(f1, f2))
-    objs = [Redirect(item[0],item[1]) for item in input_list]
+    objs = [Redirect(item[0], item[1]) for item in input_list]
     for obj in objs:
-        Redirect.compare(obj)
-plain_input('cleared_o_t.txt', 'cleared_n_t.txt')
+        Redirect.compare(obj, verbose)
 
-# To be done
-def csv_input(file):
-    pass
 
+def csv_input(file, verbose=False):
+    csvfile = open(file).read().splitlines()
+    table = csv.reader(csvfile, delimiter=";")
+    objs = [Redirect(row[0], row[1]) for row in table if row[2] != 'Ignore']
+    for obj in objs:
+        Redirect.compare(obj, verbose)
+        if not obj.new_url_match:
+            print(obj.url)
+
+
+plain_input('old_url_list.txt', 'target_url_list.txt')
+csv_input('urls.csv', True)
 Redirect.report()

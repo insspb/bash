@@ -3,14 +3,37 @@ from time import time
 from termcolor import colored
 
 # Colored fail and pass msg template:
+"""
+Usage:
 
+Get 1 URL redirects:
+url = Redirect('http://example.com')
+Redirect.test(url)
+
+Get bool results between expected redirect finish point and real one (testing).
+url = Redirect('http://example.com', 'https://endpoint.com')
+Redirect.compare(url)
+
+Get verbose results between expected redirect finish point and real one (testing).
+url = Redirect('http://example.com', 'https://endpoint.com')
+Redirect.compare(url,True)
+
+Get redirection steps for object
+url = Redirect('http://example.com')
+Redirect.history(url)
+
+Get report for status of all Redirect class objects:
+Redirect.report()
+"""
 cpass = colored('Pass', 'green', attrs=['bold'])
 cfail = colored('Fail', 'red', attrs=['bold'])
+
 
 class Redirect:
     amount = 0
     failed = 0
     passed = 0
+
     def __init__(self, url, expected_url='', max_redirects=0):
         self.url = url
         self.expected_url = expected_url
@@ -42,30 +65,35 @@ class Redirect:
             return f'{cfail}: Connection problem with {self.url}! Too many redirects! '
 
     def test(self):
+        print(f'Start URL: {self.url}')
         self.request()
-        print(self.final_response_code, self.final_url)
+        self.last_check = time()
+        self.history()
+        print(
+            f'Final URL: {self.final_url}, total: {len(self.redirect_history)} step(s)')
 
     def history(self):
         try:
             for step in self.redirect_history:
                 print(f'{step.status_code} {step.url}')
-        except:
+        except BaseException:
             pass
 
-    def __verbose(self, status):
+    def _verbose(self, status):
         print(f'Working on: {self.url}')
         if not status:
             if not self.expected_url:
                 print(f'{cfail}: {self.final_response_code} Expected URL not set!')
                 return
             else:
-                print(f'{cfail}: {self.final_response_code} Expected: {self.expected_url} Received: {self.final_url}')
+                print(
+                    f'{cfail}: {self.final_response_code} Expected: {self.expected_url} Received: {self.final_url}')
         else:
-            print(f'{cpass}: {self.final_response_code} Expected: {self.expected_url} Received: {self.final_url}')
+            print(
+                f'{cpass}: {self.final_response_code} Expected: {self.expected_url} Received: {self.final_url}')
         self.history()
 
-
-    def compare(self, verbose=True):
+    def compare(self, verbose=False):
         if self.expected_url:
             self.request()
             self.last_check = time()
@@ -73,17 +101,16 @@ class Redirect:
                 Redirect.passed += 1
                 self.new_url_match = True
                 if verbose:
-                    self.__verbose(True)
-                return
+                    self._verbose(True)
+                return True
             else:
                 Redirect.failed += 1
                 self.new_url_match = False
                 if verbose:
-                    self.__verbose(False)
-                return
+                    self._verbose(False)
+                return False
         else:
             Redirect.failed += 1
             if verbose:
-                self.__verbose(False)
-            return
-
+                self._verbose(False)
+            return False
