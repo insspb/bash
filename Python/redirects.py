@@ -81,16 +81,15 @@ class Redirect:
 
     def _verbose(self, status):
         print(f'Working on: {self.url}')
-        if not status:
-            if not self.expected_url:
-                print(f'{cfail}: {self.final_response_code} Expected URL not set!')
-                return
-            else:
-                print(
-                    f'{cfail}: {self.final_response_code} Expected: {self.expected_url} Received: {self.final_url}')
-        else:
+        if status:
             print(
                 f'{cpass}: {self.final_response_code} Expected: {self.expected_url} Received: {self.final_url}')
+        elif not self.expected_url:
+            print(f'{cfail}: {self.final_response_code} Expected URL not set!')
+            return
+        else:
+            print(
+                f'{cfail}: {self.final_response_code} Expected: {self.expected_url} Received: {self.final_url}')
         self.history()
 
     def compare(self, verbose=False):
